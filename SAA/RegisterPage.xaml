@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SAA.RegisterPage"
+             NavigationPage.HasNavigationBar="False"
+             NavigationPage.HasBackButton="False"
+             BackgroundColor="#f3eff5">
+    <VerticalStackLayout Spacing="10" Padding="30" VerticalOptions="Center">
+        <Label Text="Register" 
+             FontSize="35" 
+             HorizontalOptions="Center"
+             TextColor="#3f7d20"
+             FontAttributes="Bold"/>
+
+        <Entry x:Name="FirstNameEntry"
+             Placeholder="Fisrtname"
+             PlaceholderColor="#888"
+             BackgroundColor="#dce1de"
+             TextColor="#0d0a0b"
+             HeightRequest="50"/>
+
+        <Entry x:Name="LastNameEntry"
+             Placeholder="Lastname"
+             PlaceholderColor="#888"
+             IsPassword="True"
+             BackgroundColor="#dce1de"
+             TextColor="#0d0a0b"
+             HeightRequest="50"/>
+
+        <Entry x:Name="EmailEntry"
+            Placeholder="Email"
+            PlaceholderColor="#888"
+            BackgroundColor="#dce1de"
+            TextColor="#0d0a0b"
+            HeightRequest="50"/>
+
+        <Entry x:Name="PasswordEntry"
+            Placeholder="Password"
+            PlaceholderColor="#888"
+            IsPassword="True"
+            BackgroundColor="#dce1de"
+            TextColor="#0d0a0b"
+            HeightRequest="50"/>
+
+        <Entry x:Name="ConfirmPasswordEntry"
+             Placeholder="Confirm Password"
+             PlaceholderColor="#888"
+             IsPassword="True"
+             BackgroundColor="#dce1de"
+             TextColor="#0d0a0b"
+             HeightRequest="50"
+             />
+
+        <Button Text="Register"
+            FontSize="18"
+            BackgroundColor="#3f7d20"
+            TextColor="White"
+            CornerRadius="10"
+            HeightRequest="50"
+            Clicked="HandleRegister"/>
+
+        <Button Text="Already have an account? Login"
+        FontSize="14"
+        BackgroundColor="Transparent"
+        TextColor="#3f7d20"
+        Clicked="GoToLogin"
+        HorizontalOptions="Center" />
+    </VerticalStackLayout>
+</ContentPage>
