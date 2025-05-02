@@ -4,7 +4,21 @@
              x:Class="SAA.MainPage">
 
     <ScrollView>
-       
+        <VerticalStackLayout Spacing="25" Padding="30">
+
+            <Image x:Name="CapturedImage" 
+                   Aspect="AspectFit"
+                   HeightRequest="200"/>
+
+            <Label x:Name="PredictionLabel" 
+                   Text="Prediction will appear here"
+                   FontSize="18"
+                   HorizontalOptions="Center" />
+
+            <Button 
+                Text="Capture Photo and Recognize"
+                Clicked="OnCapturePhotoClicked" />
+        </VerticalStackLayout>
     </ScrollView>
 
 </ContentPage>
