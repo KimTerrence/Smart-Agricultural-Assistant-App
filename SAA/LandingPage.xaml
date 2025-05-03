@@ -15,22 +15,22 @@
               FontAttributes="Bold"/>
 
 
-        <Frame BackgroundColor="#dce1de" CornerRadius="25" Padding="0" HasShadow="False" BorderColor="Transparent">
+        <Frame BackgroundColor="#dce1de" CornerRadius="25" Padding="5" HasShadow="False" BorderColor="Transparent">
             <Entry x:Name="UsernameEntry"
                  Placeholder="Username"
-                 PlaceholderColor="#373d20"
+                 PlaceholderColor="#888"
                  TextColor="Black"
-                 HeightRequest="50"
+                 HeightRequest="40"
                  Margin="0"/>
         </Frame>
 
-        <Frame BackgroundColor="#dce1de" CornerRadius="25" Padding="0" HasShadow="False" BorderColor="Transparent">
+        <Frame BackgroundColor="#dce1de" CornerRadius="25" Padding="5" HasShadow="False" BorderColor="Transparent">
             <Entry x:Name="PasswordEntry"
                 Placeholder="Password"
                 IsPassword="True"
-                PlaceholderColor="#373d20"
+                PlaceholderColor="#888"
                 TextColor="Black"
-                HeightRequest="50"
+                HeightRequest="40"
                 Margin="0"/>
         </Frame>
 
@@ -55,6 +55,5 @@
                TextColor="#3f7d20"
                Clicked="GoToRegister"
                HorizontalOptions="Center" />
-
     </VerticalStackLayout>
 </ContentPage>

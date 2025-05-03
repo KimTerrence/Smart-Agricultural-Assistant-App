@@ -11,51 +11,60 @@
              HorizontalOptions="Center"
              TextColor="#3f7d20"
              FontAttributes="Bold"/>
-
-        <Entry x:Name="FirstNameEntry"
+        <Frame BackgroundColor="#dce1de" CornerRadius="25" Padding="5" HasShadow="False" BorderColor="Transparent">
+            <Entry x:Name="FirstNameEntry"
              Placeholder="Fisrtname"
              PlaceholderColor="#888"
              BackgroundColor="#dce1de"
              TextColor="#0d0a0b"
-             HeightRequest="50"/>
+             HeightRequest="40"/>
+        </Frame>
 
-        <Entry x:Name="LastNameEntry"
+        <Frame BackgroundColor="#dce1de" CornerRadius="25" Padding="5" HasShadow="False" BorderColor="Transparent">
+            <Entry x:Name="LastNameEntry"
              Placeholder="Lastname"
              PlaceholderColor="#888"
              IsPassword="True"
              BackgroundColor="#dce1de"
              TextColor="#0d0a0b"
-             HeightRequest="50"/>
+             HeightRequest="40"/>
+        </Frame>
 
-        <Entry x:Name="EmailEntry"
+        <Frame BackgroundColor="#dce1de" CornerRadius="25" Padding="5" HasShadow="False" BorderColor="Transparent">
+            <Entry x:Name="EmailEntry"
             Placeholder="Email"
             PlaceholderColor="#888"
             BackgroundColor="#dce1de"
             TextColor="#0d0a0b"
-            HeightRequest="50"/>
+            HeightRequest="40"/>
+        </Frame>
 
-        <Entry x:Name="PasswordEntry"
+        <Frame BackgroundColor="#dce1de" CornerRadius="25" Padding="5" HasShadow="False" BorderColor="Transparent">
+            <Entry x:Name="PasswordEntry"
             Placeholder="Password"
             PlaceholderColor="#888"
             IsPassword="True"
             BackgroundColor="#dce1de"
             TextColor="#0d0a0b"
-            HeightRequest="50"/>
+            HeightRequest="40"/>
+        </Frame>
 
-        <Entry x:Name="ConfirmPasswordEntry"
+
+        <Frame BackgroundColor="#dce1de" CornerRadius="25" Padding="5" HasShadow="False" BorderColor="Transparent">
+            <Entry x:Name="ConfirmPasswordEntry"
              Placeholder="Confirm Password"
              PlaceholderColor="#888"
              IsPassword="True"
              BackgroundColor="#dce1de"
              TextColor="#0d0a0b"
-             HeightRequest="50"
+             HeightRequest="40"
              />
-
+        </Frame>
         <Button Text="Register"
             FontSize="18"
             BackgroundColor="#3f7d20"
             TextColor="White"
-            CornerRadius="10"
+            CornerRadius="25"
             HeightRequest="50"
             Clicked="HandleRegister"/>
 
