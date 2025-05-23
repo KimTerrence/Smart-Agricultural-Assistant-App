@@ -22,4 +22,9 @@
        ContentTemplate="{DataTemplate local:RegisterPage}"
        Route="RegisterPage" />
 
+    <ShellContent
+    Title="PestDetailPage"
+    ContentTemplate="{DataTemplate local:PestDetailPage}"
+    Route="PestDetailPage" />
+
 </Shell>
