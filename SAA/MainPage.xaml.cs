@@ -25,7 +25,6 @@ public partial class MainPage : ContentPage
         ["whorl-maggot"] = SKColors.Teal
     };
 
-
     public MainPage()
     {
         InitializeComponent();
@@ -45,15 +44,13 @@ public partial class MainPage : ContentPage
                 using var assetStream = Android.App.Application.Context.Assets.Open(fileName);
                 using var fileStream = File.Create(destinationPath);
                 assetStream.CopyTo(fileStream);
-               // DisplayAlert("",$"✅ Model copied to: {destinationPath}","OK");
             }
 
             _session = new InferenceSession(destinationPath);
-            DisplayAlert("", "✅ ONNX session initialized.", "OK");
         }
-        catch (Exception ex)
+        catch
         {
-            DisplayAlert("", $"❌ Error loading ONNX model: {ex.Message}", "OK");
+            DisplayAlert("", $"❌ Detection Unavailable", "OK");
         }
 #endif
     }
@@ -75,95 +72,7 @@ public partial class MainPage : ContentPage
             using (var newStream = File.OpenWrite(filePath))
                 await stream.CopyToAsync(newStream);
 
-            CapturedImage.Source = ImageSource.FromFile(filePath);
-
-            var inputTensor = PreprocessImage(filePath);
-            if (inputTensor == null || _session == null)
-                return;
-
-            using var originalImage = SKBitmap.Decode(filePath);
-            var inputs = new List<NamedOnnxValue>
-            {
-                NamedOnnxValue.CreateFromTensor("images", inputTensor)
-            };
-
-            using var results = _session.Run(inputs);
-            var outputTensor = results.FirstOrDefault(r => r.Name == "output0")?.AsTensor<float>();
-            if (outputTensor == null) return;
-
-            var rawDetections = ParseDetections(outputTensor, 416, 416, originalImage.Width, originalImage.Height, 0.5f);
-            var detections = NonMaximumSuppression(rawDetections, 0.5f); // IoU threshold: 0.5
-
-
-            if (detections.Count == 0)
-            {
-                PredictionList.Children.Clear();
-                await DisplayAlert("","No pests detected.","Ok");    
-                return;
-            }
-
-            var imageWithBoxes = DrawBoundingBoxes(originalImage, detections);
-            using var image = SKImage.FromBitmap(imageWithBoxes);
-            using var data = image.Encode(SKEncodedImageFormat.Jpeg, 90);
-            using var ms = new MemoryStream();
-            data.SaveTo(ms);
-            ms.Seek(0, SeekOrigin.Begin);
-
-            CapturedImage.Source = ImageSource.FromStream(() => ms);
-
-            var uniquePests = detections.Select(d => d.Label).Distinct();
-
-            PredictionList.Children.Clear();
-            PredictionList.Children.Add(new Label
-            {
-                Text = "Detected Pests:",
-                FontSize = 16,
-                FontAttributes = FontAttributes.Bold,
-                TextColor = Colors.DarkGreen
-            });
-
-            foreach (var pest in uniquePests)
-            {
-                var color = _labelColors.TryGetValue(pest, out var skColor)
-                ? Color.FromRgba(skColor.Red, skColor.Green, skColor.Blue, skColor.Alpha)
-                : Colors.Black;
-
-
-                var frame = new Frame
-                {
-                    CornerRadius = 10,
-                    BackgroundColor = color,
-                    Padding = new Thickness(10, 5),
-                    Margin = new Thickness(5),
-                    HeightRequest = 50, // Increase height here
-                    VerticalOptions = LayoutOptions.Center,
-                    Content = new Label
-                    {
-                        Text = pest,
-                        FontSize = 14,
-                        TextColor = Colors.White,
-                        HorizontalTextAlignment = TextAlignment.Center,
-                        VerticalTextAlignment = TextAlignment.Center,
-                        FontAttributes = FontAttributes.Bold,
-                        VerticalOptions = LayoutOptions.Center,
-                        HorizontalOptions = LayoutOptions.Center
-                    }
-                };
-
-                // Add tap gesture to the frame instead of the label
-                var tap = new TapGestureRecognizer();
-                tap.Tapped += async (s, e) =>
-                {
-                    string description = GetPestDescription(pest);
-                    await Navigation.PushAsync(new PestDetailPage(pest, description));
-                };
-
-                frame.GestureRecognizers.Add(tap);
-                PredictionList.Children.Add(frame);
-
-
-            }
-
+            await ProcessImage(filePath);
         }
         catch (Exception ex)
         {
@@ -189,97 +98,97 @@ public partial class MainPage : ContentPage
                 return;
             }
 
-            var filePath = result.FullPath;
-            CapturedImage.Source = ImageSource.FromFile(filePath);
-
-            var inputTensor = PreprocessImage(filePath);
-            if (inputTensor == null || _session == null)
-                return;
-
-            using var originalImage = SKBitmap.Decode(filePath);
-            var inputs = new List<NamedOnnxValue>
-            {
-                NamedOnnxValue.CreateFromTensor("images", inputTensor)
-            };
-
-            using var results = _session.Run(inputs);
-            var outputTensor = results.FirstOrDefault(r => r.Name == "output0")?.AsTensor<float>();
-            if (outputTensor == null) return;
-
-            var rawDetections = ParseDetections(outputTensor, 416, 416, originalImage.Width, originalImage.Height, 0.5f);
-            var detections = NonMaximumSuppression(rawDetections, 0.5f); // IoU threshold: 0.5
-
-
-            if (detections.Count == 0)
-            {
-                PredictionList.Children.Clear();
-                await DisplayAlert("","No pests detected.","OK");
-                return;
-            }
-
-            var imageWithBoxes = DrawBoundingBoxes(originalImage, detections);
-            using var image = SKImage.FromBitmap(imageWithBoxes);
-            using var data = image.Encode(SKEncodedImageFormat.Jpeg, 90);
-            byte[] imageBytes = data.ToArray();
-
-            CapturedImage.Source = ImageSource.FromStream(() => new MemoryStream(imageBytes));
-
-            var uniquePests = detections.Select(d => d.Label).Distinct();
-
-            PredictionList.Children.Clear();
-            PredictionList.Children.Add(new Label
-            {
-                Text = "Detected Pests:",
-                FontSize = 16,
-                FontAttributes = FontAttributes.Bold,
-                TextColor = Colors.DarkGreen
-            });
-
-            foreach (var pest in uniquePests)
-            {
-               var color = _labelColors.TryGetValue(pest, out var skColor)
-            ? Color.FromRgba(skColor.Red, skColor.Green, skColor.Blue, skColor.Alpha)
-            : Colors.Black;
-
-
-                var frame = new Frame
-                {
-                    CornerRadius = 10,
-                    BackgroundColor = color,
-                    Padding = new Thickness(5, 5),
-                    HeightRequest = 45, // Increase height here
-                    VerticalOptions = LayoutOptions.Center,
-                    Content = new Label
-                    {
-                        Text = pest,
-                        FontSize = 14,
-                        TextColor = Colors.White,
-                        HorizontalTextAlignment = TextAlignment.Center,
-                        VerticalTextAlignment = TextAlignment.Center,
-                        FontAttributes = FontAttributes.Bold,
-                        VerticalOptions = LayoutOptions.Center,
-                        HorizontalOptions = LayoutOptions.Center
-                    }
-                };
-
-                // Add tap gesture to the frame instead of the label
-                var tap = new TapGestureRecognizer();
-                tap.Tapped += async (s, e) =>
-                {
-                    string description = GetPestDescription(pest);
-                    await Navigation.PushAsync(new PestDetailPage(pest, description));
-                };
-
-                frame.GestureRecognizers.Add(tap);
-                PredictionList.Children.Add(frame);
-
-            }
-
+            await ProcessImage(result.FullPath);
         }
         catch (Exception ex)
         {
             Console.WriteLine($"❌ Error: {ex.Message}");
             await DisplayAlert("Error", ex.Message, "OK");
+        }
+    }
+
+    private async Task ProcessImage(string filePath)
+    {
+        CapturedImage.Source = ImageSource.FromFile(filePath);
+
+        var inputTensor = PreprocessImage(filePath);
+        if (inputTensor == null || _session == null)
+            return;
+
+        using var originalImage = SKBitmap.Decode(filePath);
+        var inputs = new List<NamedOnnxValue>
+        {
+            NamedOnnxValue.CreateFromTensor("images", inputTensor)
+        };
+
+        using var results = _session.Run(inputs);
+        var outputTensor = results.FirstOrDefault(r => r.Name == "output0")?.AsTensor<float>();
+        if (outputTensor == null) return;
+
+        var rawDetections = ParseDetections(outputTensor, 416, 416, originalImage.Width, originalImage.Height, 0.5f);
+        var detections = NonMaximumSuppression(rawDetections, 0.5f);
+
+        if (detections.Count == 0)
+        {
+            PredictionList.Children.Clear();
+            await DisplayAlert("", "No pests detected.", "OK");
+            return;
+        }
+
+        var imageWithBoxes = DrawBoundingBoxes(originalImage, detections);
+        using var image = SKImage.FromBitmap(imageWithBoxes);
+        using var data = image.Encode(SKEncodedImageFormat.Jpeg, 90);
+        byte[] imageBytes = data.ToArray(); // Copy data to prevent stream disposal issues
+
+        CapturedImage.Source = ImageSource.FromStream(() => new MemoryStream(imageBytes));
+
+        var uniquePests = detections.Select(d => d.Label).Distinct();
+
+        PredictionList.Children.Clear();
+        PredictionList.Children.Add(new Label
+        {
+            Text = "Detected Pests:",
+            FontSize = 16,
+            FontAttributes = FontAttributes.Bold,
+            TextColor = Colors.DarkGreen
+        });
+
+        foreach (var pest in uniquePests)
+        {
+            var color = _labelColors.TryGetValue(pest, out var skColor)
+                ? Color.FromRgba(skColor.Red, skColor.Green, skColor.Blue, skColor.Alpha)
+                : Colors.Black;
+
+            var frame = new Frame
+            {
+                CornerRadius = 10,
+                BackgroundColor = color,
+                Padding = new Thickness(10, 5),
+                Margin = new Thickness(5),
+                HeightRequest = 50,
+                VerticalOptions = LayoutOptions.Center,
+                Content = new Label
+                {
+                    Text = pest,
+                    FontSize = 14,
+                    TextColor = Colors.White,
+                    HorizontalTextAlignment = TextAlignment.Center,
+                    VerticalTextAlignment = TextAlignment.Center,
+                    FontAttributes = FontAttributes.Bold,
+                    VerticalOptions = LayoutOptions.Center,
+                    HorizontalOptions = LayoutOptions.Center
+                }
+            };
+
+            var tap = new TapGestureRecognizer();
+            tap.Tapped += async (s, e) =>
+            {
+                string description = GetPestDescription(pest);
+                await Navigation.PushAsync(new PestDetailPage(pest, description));
+            };
+
+            frame.GestureRecognizers.Add(tap);
+            PredictionList.Children.Add(frame);
         }
     }
 
@@ -364,8 +273,6 @@ public partial class MainPage : ContentPage
             float h = box.Height;
 
             var rect = new SKRect(x, y, x + w, y + h);
-
-            // Get color for this label
             SKColor color = _labelColors.TryGetValue(box.Label, out var c) ? c : SKColors.White;
 
             var paint = new SKPaint
@@ -391,17 +298,9 @@ public partial class MainPage : ContentPage
         return image;
     }
 
-    public class PredictionResult
-    {
-        public float X, Y, Width, Height, Confidence;
-        public string Label;
-    }
-
     private List<PredictionResult> NonMaximumSuppression(List<PredictionResult> detections, float iouThreshold)
     {
         var results = new List<PredictionResult>();
-
-        // Sort by confidence descending
         var sorted = detections.OrderByDescending(d => d.Confidence).ToList();
 
         while (sorted.Count > 0)
@@ -448,4 +347,9 @@ public partial class MainPage : ContentPage
         };
     }
 
+    public class PredictionResult
+    {
+        public float X, Y, Width, Height, Confidence;
+        public required string Label;
+    }
 }
