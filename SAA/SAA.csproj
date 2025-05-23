@@ -56,7 +56,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <MauiImage Remove="Resources\Images\dotnet_bot.png" />
 	  <MauiImage Remove="Resources\Images\splash.png" />
 	</ItemGroup>
 
@@ -64,6 +63,7 @@
 	  <None Remove="Platforms\Android\Assets\model.onnx" />
 	  <None Remove="Platforms\Android\Assets\RicePest.onnx" />
 	  <None Remove="Resources\AppIcon\icon.jpg" />
+	  <None Remove="Resources\Images\dotnet_bot.png" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -74,6 +74,8 @@
 		<PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.21.0" />
 		<PackageReference Include="OnnxStack.Core" Version="0.39.0" />
 		<PackageReference Include="SkiaSharp" Version="3.119.0" />
+		<PackageReference Include="SQLite" Version="3.13.0" />
+		<PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
 	</ItemGroup>
 
 	<ItemGroup>
