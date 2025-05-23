@@ -1,20 +1,78 @@
-<?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="SAA.PestDetailPage"
-             Title="PestInfoPage">
+             Title="Pest Details"
+             BackgroundColor="#f0f8ff"
+             Padding="15">
+
     <ScrollView>
-        <VerticalStackLayout Padding="20" Spacing="20">
+        <VerticalStackLayout Spacing="15">
 
+            <!-- Pest Image -->
+            <Frame HasShadow="True" CornerRadius="15" Padding="0">
+                <Image x:Name="PestImage"
+                       Aspect="AspectFill"
+                       HeightRequest="200"
+                       WidthRequest="300"
+                       HorizontalOptions="Center"
+                       VerticalOptions="Center"
+                       />
+            </Frame>
+
+            <!-- Pest Name -->
             <Label x:Name="PestNameLabel"
-                   FontSize="24"
+                   FontSize="32"
                    FontAttributes="Bold"
-                   TextColor="DarkGreen" />
+                   HorizontalOptions="Center"
+                   TextColor="#2E8B57" />
 
-            <Label x:Name="PestDescriptionLabel"
-                   FontSize="16"
-                   TextColor="Black"
-                   LineBreakMode="WordWrap" />
+            <!-- Scientific Name -->
+            <Frame BackgroundColor="White" CornerRadius="12" Padding="10" HasShadow="True">
+                <VerticalStackLayout>
+                    <Label Text="🔬 Scientific Name" FontSize="20" FontAttributes="Bold" />
+                    <Label x:Name="ScientificNameLabel" FontSize="16" TextColor="Gray" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Common Names -->
+            <Frame BackgroundColor="White" CornerRadius="12" Padding="10" HasShadow="True">
+                <VerticalStackLayout>
+                    <Label Text="🌍 Common Names" FontSize="20" FontAttributes="Bold" />
+                    <Label x:Name="CommonNamesLabel" FontSize="16" TextColor="Gray" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Description -->
+            <Frame BackgroundColor="White" CornerRadius="12" Padding="10" HasShadow="True">
+                <VerticalStackLayout>
+                    <Label Text="📋 Description" FontSize="20" FontAttributes="Bold" />
+                    <Label x:Name="DescriptionLabel" FontSize="16" TextColor="Gray" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Where to Find -->
+            <Frame BackgroundColor="White" CornerRadius="12" Padding="10" HasShadow="True">
+                <VerticalStackLayout>
+                    <Label Text="📍 Where to Find" FontSize="20" FontAttributes="Bold" />
+                    <Label x:Name="WhereToFindLabel" FontSize="16" TextColor="Gray" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Damage -->
+            <Frame BackgroundColor="White" CornerRadius="12" Padding="10" HasShadow="True">
+                <VerticalStackLayout>
+                    <Label Text="⚠️ Damage" FontSize="20" FontAttributes="Bold" />
+                    <Label x:Name="DamageLabel" FontSize="16" TextColor="Gray" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Management Options -->
+            <Frame BackgroundColor="White" CornerRadius="12" Padding="10" HasShadow="True">
+                <VerticalStackLayout>
+                    <Label Text="🛠️ Management Options" FontSize="20" FontAttributes="Bold" />
+                    <Label x:Name="ManagementLabel" FontSize="16" TextColor="Gray" />
+                </VerticalStackLayout>
+            </Frame>
 
         </VerticalStackLayout>
     </ScrollView>
