@@ -62,6 +62,7 @@
 
 	<ItemGroup>
 	  <None Remove="Platforms\Android\Assets\model.onnx" />
+	  <None Remove="Platforms\Android\Assets\RicePest.onnx" />
 	  <None Remove="Resources\AppIcon\icon.jpg" />
 	</ItemGroup>
 

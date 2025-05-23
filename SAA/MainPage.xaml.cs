@@ -45,7 +45,7 @@ public partial class MainPage : ContentPage
                 using var assetStream = Android.App.Application.Context.Assets.Open(fileName);
                 using var fileStream = File.Create(destinationPath);
                 assetStream.CopyTo(fileStream);
-                Console.WriteLine($"✅ Model copied to: {destinationPath}");
+               // DisplayAlert("",$"✅ Model copied to: {destinationPath}","OK");
             }
 
             _session = new InferenceSession(destinationPath);
