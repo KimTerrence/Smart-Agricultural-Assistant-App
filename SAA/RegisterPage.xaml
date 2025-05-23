@@ -5,74 +5,76 @@
              NavigationPage.HasNavigationBar="False"
              NavigationPage.HasBackButton="False"
              BackgroundColor="#f3eff5">
-    <VerticalStackLayout Spacing="10" Padding="30" VerticalOptions="Center">
-        <Label Text="Register" 
-             FontSize="35" 
-             HorizontalOptions="Center"
-             TextColor="#3f7d20"
-             FontAttributes="Bold"/>
-        <Frame BackgroundColor="#dce1de" CornerRadius="25" Padding="5" HasShadow="False" BorderColor="Transparent">
-            <Entry x:Name="FirstNameEntry"
-             Placeholder="Fisrtname"
-             PlaceholderColor="#888"
-             BackgroundColor="#dce1de"
-             TextColor="#0d0a0b"
-             HeightRequest="40"/>
-        </Frame>
+    <ScrollView>
+        <VerticalStackLayout Spacing="10" Padding="30" VerticalOptions="Center">
+            <Label Text="Register" 
+                 FontSize="35" 
+                 HorizontalOptions="Center"
+                 TextColor="#3f7d20"
+                 FontAttributes="Bold"/>
+            <Frame BackgroundColor="#dce1de" CornerRadius="25" Padding="5" HasShadow="False" BorderColor="Transparent">
+                <Entry x:Name="FirstNameEntry"
+                 Placeholder="Firstname"
+                 PlaceholderColor="#888"
+                 BackgroundColor="#dce1de"
+                 TextColor="#0d0a0b"
+                 HeightRequest="40"/>
+            </Frame>
 
-        <Frame BackgroundColor="#dce1de" CornerRadius="25" Padding="5" HasShadow="False" BorderColor="Transparent">
-            <Entry x:Name="LastNameEntry"
-             Placeholder="Lastname"
-             PlaceholderColor="#888"
-             IsPassword="True"
-             BackgroundColor="#dce1de"
-             TextColor="#0d0a0b"
-             HeightRequest="40"/>
-        </Frame>
+            <Frame BackgroundColor="#dce1de" CornerRadius="25" Padding="5" HasShadow="False" BorderColor="Transparent">
+                <Entry x:Name="LastNameEntry"
+                 Placeholder="Lastname"
+                 PlaceholderColor="#888"
+                 BackgroundColor="#dce1de"
+                 TextColor="#0d0a0b"
+                 HeightRequest="40"/>
+            </Frame>
 
-        <Frame BackgroundColor="#dce1de" CornerRadius="25" Padding="5" HasShadow="False" BorderColor="Transparent">
-            <Entry x:Name="EmailEntry"
-            Placeholder="Email"
-            PlaceholderColor="#888"
-            BackgroundColor="#dce1de"
-            TextColor="#0d0a0b"
-            HeightRequest="40"/>
-        </Frame>
+            <Frame BackgroundColor="#dce1de" CornerRadius="25" Padding="5" HasShadow="False" BorderColor="Transparent">
+                <Entry x:Name="EmailEntry"
+                Placeholder="Email"
+                PlaceholderColor="#888"
+                BackgroundColor="#dce1de"
+                TextColor="#0d0a0b"
+                HeightRequest="40"/>
+            </Frame>
 
-        <Frame BackgroundColor="#dce1de" CornerRadius="25" Padding="5" HasShadow="False" BorderColor="Transparent">
-            <Entry x:Name="PasswordEntry"
-            Placeholder="Password"
-            PlaceholderColor="#888"
-            IsPassword="True"
-            BackgroundColor="#dce1de"
-            TextColor="#0d0a0b"
-            HeightRequest="40"/>
-        </Frame>
+            <Frame BackgroundColor="#dce1de" CornerRadius="25" Padding="5" HasShadow="False" BorderColor="Transparent">
+                <Entry x:Name="AddressEntry"
+                Placeholder="Address"
+                PlaceholderColor="#888"
+                BackgroundColor="#dce1de"
+                TextColor="#0d0a0b"
+                HeightRequest="40"/>
+            </Frame>
+
+            <VerticalStackLayout x:Name="FieldLocationsContainer" Spacing="10">
+                <!-- Initial Field Location Entry -->
+                <Frame BackgroundColor="#dce1de" CornerRadius="25" Padding="5" HasShadow="False" BorderColor="Transparent">
+                    <Entry Placeholder="Field Location"
+               PlaceholderColor="#888"
+               BackgroundColor="#dce1de"
+               TextColor="#0d0a0b"
+               HeightRequest="40"/>
+                </Frame>
+            </VerticalStackLayout>
+
+            <Button Text="Add more field location"
+                FontSize="18"
+                BackgroundColor="#3f7d20"
+                TextColor="White"
+                CornerRadius="25"
+                HeightRequest="50"
+                Clicked="AddLocation"/> 
 
 
-        <Frame BackgroundColor="#dce1de" CornerRadius="25" Padding="5" HasShadow="False" BorderColor="Transparent">
-            <Entry x:Name="ConfirmPasswordEntry"
-             Placeholder="Confirm Password"
-             PlaceholderColor="#888"
-             IsPassword="True"
-             BackgroundColor="#dce1de"
-             TextColor="#0d0a0b"
-             HeightRequest="40"
-             />
-        </Frame>
-        <Button Text="Register"
-            FontSize="18"
-            BackgroundColor="#3f7d20"
-            TextColor="White"
-            CornerRadius="25"
-            HeightRequest="50"
-            Clicked="HandleRegister"/>
-
-        <Button Text="Already have an account? Login"
-        FontSize="14"
-        BackgroundColor="Transparent"
-        TextColor="#3f7d20"
-        Clicked="GoToLogin"
-        HorizontalOptions="Center" />
-    </VerticalStackLayout>
+            <Button Text="Register"
+                FontSize="18"
+                BackgroundColor="#3f7d20"
+                TextColor="White"
+                CornerRadius="25"
+                HeightRequest="50"
+                Clicked="HandleRegister"/>
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

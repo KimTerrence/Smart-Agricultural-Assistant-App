@@ -1,36 +1,68 @@
-using System.Threading.Tasks;
+using SQLite;
+using System;
+using System.IO;
+using Microsoft.Maui.Controls;
+using System.Linq;
 
-namespace SAA;
-
-public partial class LandingPage : ContentPage
+namespace SAA
 {
-	public LandingPage()
-	{
-		InitializeComponent();
-    }
-    private async void OnLoginClicked(object sender, EventArgs e)
+    public partial class LandingPage : ContentPage
     {
-        string username = UsernameEntry.Text;
-        string password = PasswordEntry.Text;
+        private SQLiteConnection _database;
 
-        if (username == "admin" && password == "1234") // Example login
+        public LandingPage()
         {
-            await DisplayAlert("Success", "Logged in successfully!", "OK");
-            await Navigation.PushAsync(new MainPage()); // Navigate to your MainPage
+            InitializeComponent();
         }
-        else
+
+        protected override void OnAppearing()
         {
-            await DisplayAlert("Error", "Invalid username or password.", "OK");
+            base.OnAppearing();
+            InitDatabase();
+            CheckIfUserExists();
         }
-    }
 
-    private async void OnForgotPasswordClicked(object sender, EventArgs e)
-    {
-        await DisplayAlert("Forgot Password", "Reset password feature coming soon!", "OK");
-    }
+        private void InitDatabase()
+        {
+            try
+            {
+                string dbPath = Path.Combine(FileSystem.AppDataDirectory, "users.db");
+                _database = new SQLiteConnection(dbPath);
+                _database.CreateTable<RegisterPage.User>(); // Reuse User model from RegisterPage
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"DB Init Error: {ex.Message}");
+                // You can optionally show an alert here
+            }
+        }
 
-    private async void GoToRegister(object sender, EventArgs e)
-    {
-        await Navigation.PushAsync(new RegisterPage()); // Navigate to Register Page
+        private void CheckIfUserExists()
+        {
+            if (_database == null)
+                return;
+
+            try
+            {
+                bool userExists = _database.Table<RegisterPage.User>().Any();
+                if (userExists)
+                {
+                    // Navigate to MainPage if user exists
+                    Application.Current.MainPage = new NavigationPage(new MainPage());
+                }
+                // Else, stay here and let user tap Get Started
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"DB Query Error: {ex.Message}");
+                // Table might not exist or DB issue — stay on LandingPage safely
+            }
+        }
+
+        private void Start(object sender, EventArgs e)
+        {
+            // Navigate to RegisterPage when user clicks Get Started
+            Application.Current.MainPage = new NavigationPage(new RegisterPage());
+        }
     }
 }

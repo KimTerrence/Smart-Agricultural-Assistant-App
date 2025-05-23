@@ -183,8 +183,7 @@ public partial class MainPage : ContentPage
             var tap = new TapGestureRecognizer();
             tap.Tapped += async (s, e) =>
             {
-                string description = GetPestDescription(pest);
-                await Navigation.PushAsync(new PestDetailPage(pest, description));
+                await Navigation.PushAsync(new PestDetailPage(pest));
             };
 
             frame.GestureRecognizers.Add(tap);
@@ -331,20 +330,6 @@ public partial class MainPage : ContentPage
 
         float union = areaA + areaB - interArea;
         return interArea / union;
-    }
-
-    private string GetPestDescription(string pest)
-    {
-        return pest switch
-        {
-            "brown-planthopper" => "Brown planthopper: Sucks sap and causes hopperburn.",
-            "green-leafhopper" => "Green leafhopper: Transmits tungro virus and feeds on leaves.",
-            "leaf-folder" => "Leaf folder: Folds and eats leaves, reduces photosynthesis.",
-            "rice-bug" => "Rice bug: Sucks grains, leads to poor grain quality.",
-            "stem-borer" => "Stem borer: Bores into stems, causes dead hearts.",
-            "whorl-maggot" => "Whorl maggot: Attacks whorls of young plants.",
-            _ => "No additional information available."
-        };
     }
 
     public class PredictionResult

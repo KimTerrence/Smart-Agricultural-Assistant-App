@@ -5,55 +5,22 @@
              NavigationPage.HasNavigationBar="False"
              NavigationPage.HasBackButton="False"
              BackgroundColor="#f3eff5">
-    <VerticalStackLayout Padding="30" Spacing="10" VerticalOptions="Center">
-        <Image Source="logo.png" WidthRequest="120" HeightRequest="120" HorizontalOptions="Center"/>
+    <VerticalStackLayout Padding="0" Spacing="10" VerticalOptions="Center">
+    
 
-        <Label Text="Login" 
-              FontSize="35" 
-              HorizontalOptions="Center"
-              TextColor="#3f7d20"
-              FontAttributes="Bold"/>
-
-
-        <Frame BackgroundColor="#dce1de" CornerRadius="25" Padding="5" HasShadow="False" BorderColor="Transparent">
-            <Entry x:Name="UsernameEntry"
-                 Placeholder="Username"
-                 PlaceholderColor="#888"
-                 TextColor="Black"
-                 HeightRequest="40"
-                 Margin="0"/>
-        </Frame>
-
-        <Frame BackgroundColor="#dce1de" CornerRadius="25" Padding="5" HasShadow="False" BorderColor="Transparent">
-            <Entry x:Name="PasswordEntry"
-                Placeholder="Password"
-                IsPassword="True"
-                PlaceholderColor="#888"
-                TextColor="Black"
-                HeightRequest="40"
-                Margin="0"/>
-        </Frame>
-
-        <Button Text="Login"
-               FontSize="18"
-               BackgroundColor="#3f7d20"
-               TextColor="White"
-               CornerRadius="25"
-               HeightRequest="50"
-               Clicked="OnLoginClicked"/>
-
-        <Button Text="Forgot Password?"
-               FontSize="14"
-               BackgroundColor="Transparent"
-               TextColor="red"
-               Clicked="OnForgotPasswordClicked"
-               HorizontalOptions="Center" />
-
-        <Button Text="Dont have an account? Register"
-               FontSize="14"
-               BackgroundColor="Transparent"
+        <Label Text="Smart Agricultural Assistant" 
+               FontSize="25" 
+               HorizontalOptions="Center"
                TextColor="#3f7d20"
-               Clicked="GoToRegister"
-               HorizontalOptions="Center" />
+               FontAttributes="Bold"
+               HorizontalTextAlignment="Center"/>
+
+        <Image 
+                Source="logo.png"/>
+
+        <Button Text="Get started!"
+              FontSize="18"
+              Clicked="Start"
+              Margin="30"/>
     </VerticalStackLayout>
 </ContentPage>

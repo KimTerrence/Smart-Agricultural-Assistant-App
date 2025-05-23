@@ -1,75 +1,158 @@
+using SQLite;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.Maui.Controls;
 
-
-using Microsoft.Data.Sqlite;
-
-namespace SAA;
-
-public partial class RegisterPage : ContentPage
+namespace SAA
 {
-    string dbPath;
-    public RegisterPage()
-	{
-		InitializeComponent();
-        dbPath = Path.Combine(FileSystem.AppDataDirectory, "SAA.db");
-        CreateTable();
-    }
-
-    void CreateTable()
+    public partial class RegisterPage : ContentPage
     {
-        using var conn = new SqliteConnection($"Data Source={dbPath}");
-        conn.Open();
+        private SQLiteConnection _database;
 
-        var cmd = conn.CreateCommand();
-        cmd.CommandText = @"
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            firstname TEXT,
-            lastname TEXT,
-            email TEXT,
-            password TEXT
-        )";
-        cmd.ExecuteNonQuery();
-    }
-
-
-    public async void HandleRegister(object sender, EventArgs e)
-	{
-        string firstname = FirstNameEntry.Text;
-        string lastname = LastNameEntry.Text;
-        string email = EmailEntry.Text;
-        string password = PasswordEntry.Text;
-        if (string.IsNullOrEmpty(firstname) || string.IsNullOrEmpty(lastname) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
+        public RegisterPage()
         {
-            await DisplayAlert("Error", "Please fill in all fields.", "OK");
-            return;
+            InitializeComponent();
+            InitDatabase();
+            CheckIfUserExists();
         }
-        using var conn = new SqliteConnection($"Data Source={dbPath}");
-        conn.Open();
-        var cmd = conn.CreateCommand();
-        cmd.CommandText = @"
-            INSERT INTO users (firstname, lastname, email, password)
-            VALUES ($firstname, $lastname, $email, $password)";
-        cmd.Parameters.AddWithValue("$firstname", firstname);
-        cmd.Parameters.AddWithValue("$lastname", lastname);
-        cmd.Parameters.AddWithValue("$email", email);
-        cmd.Parameters.AddWithValue("$password", password);
-        try
+
+        public class User
         {
-            cmd.ExecuteNonQuery();
-            await DisplayAlert("Success", "Registration successful!", "OK");
-
-            //await DisplayAlert("DB Path", dbPath, "OK");
-
-            await Navigation.PushAsync(new LandingPage()); // Navigate to Login Page
+            [PrimaryKey, AutoIncrement]
+            public int Id { get; set; }
+            public string FirstName { get; set; }
+            public string LastName { get; set; }
+            public string Email { get; set; }
+            public string Address { get; set; }
+            public string FieldLocations { get; set; }
         }
-        catch (Exception ex)
+
+        private void InitDatabase()
         {
-            await DisplayAlert("Error", $"Registration failed: {ex.Message}", "OK");
+            try
+            {
+                string dbPath = Path.Combine(FileSystem.AppDataDirectory, "users.db");
+                _database = new SQLiteConnection(dbPath);
+                _database.CreateTable<User>();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"DB Init Error: {ex.Message}");
+            }
         }
-    }
 
-    public async void GoToLogin(object sender, EventArgs e)
-    {
-        await Navigation.PushAsync(new LandingPage()); // Navigate to Register Page
+        private void CheckIfUserExists()
+        {
+            if (_database == null)
+                return;
+
+            try
+            {
+                bool userExists = _database.Table<User>().Any();
+                if (userExists)
+                {
+                    // User already registered? Redirect immediately to MainPage
+                    Application.Current.MainPage = new NavigationPage(new MainPage());
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"DB Query Error: {ex.Message}");
+            }
+        }
+
+        private void AddLocation(object sender, EventArgs e)
+        {
+            var newEntry = new Entry
+            {
+                Placeholder = "Field Location",
+                PlaceholderColor = Color.FromArgb("#888"),
+                BackgroundColor = Color.FromArgb("#dce1de"),
+                TextColor = Color.FromArgb("#0d0a0b"),
+                HeightRequest = 40
+            };
+
+            var frame = new Frame
+            {
+                BackgroundColor = Color.FromArgb("#dce1de"),
+                CornerRadius = 25,
+                Padding = 5,
+                HasShadow = false,
+                BorderColor = Colors.Transparent,
+                Content = newEntry
+            };
+
+            FieldLocationsContainer.Children.Add(frame);
+        }
+
+        private async void HandleRegister(object sender, EventArgs e)
+        {
+            if (_database == null)
+            {
+                await DisplayAlert("Error", "Database is not initialized.", "OK");
+                return;
+            }
+
+            try
+            {
+                // Prevent registering twice
+                if (_database.Table<User>().Any())
+                {
+                    await DisplayAlert("Already Registered", "You are already registered. Redirecting...", "OK");
+                    Application.Current.MainPage = new NavigationPage(new MainPage());
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"DB Query Error: {ex.Message}");
+            }
+
+            string firstName = FirstNameEntry.Text?.Trim();
+            string lastName = LastNameEntry.Text?.Trim();
+            string email = EmailEntry.Text?.Trim();
+            string address = AddressEntry.Text?.Trim();
+
+            var fieldLocations = new List<string>();
+            foreach (var view in FieldLocationsContainer.Children)
+            {
+                if (view is Frame frame && frame.Content is Entry entry && !string.IsNullOrWhiteSpace(entry.Text))
+                {
+                    fieldLocations.Add(entry.Text.Trim());
+                }
+            }
+
+            string fieldLocationCsv = string.Join(",", fieldLocations);
+
+            var user = new User
+            {
+                FirstName = firstName,
+                LastName = lastName,
+                Email = email,
+                Address = address,
+                FieldLocations = fieldLocationCsv
+            };
+
+            try
+            {
+                _database.Insert(user);
+                await DisplayAlert("Success", "User registered successfully!", "OK");
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Error", "Failed to save data: " + ex.Message, "OK");
+                return;
+            }
+
+            // Clear fields
+            FirstNameEntry.Text = LastNameEntry.Text = EmailEntry.Text = AddressEntry.Text = string.Empty;
+            FieldLocationsContainer.Children.Clear();
+
+            // Redirect to MainPage
+            Application.Current.MainPage = new NavigationPage(new MainPage());
+        }
     }
 }
