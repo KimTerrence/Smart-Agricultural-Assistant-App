@@ -97,4 +97,10 @@
 	  <MauiSplashScreen Include="Resources\Splash\splash.png" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Compile Update="PestDetailPage.xaml.cs">
+	    <DependentUpon>PestDetailPage.xaml</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+
 </Project>

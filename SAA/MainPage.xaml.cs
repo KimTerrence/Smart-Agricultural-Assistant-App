@@ -15,6 +15,17 @@ public partial class MainPage : ContentPage
 
     private InferenceSession _session;
 
+    private Dictionary<string, SKColor> _labelColors = new()
+    {
+        ["brown-planthopper"] = SKColors.Red,
+        ["green-leafhopper"] = SKColors.Green,
+        ["leaf-folder"] = SKColors.Blue,
+        ["rice-bug"] = SKColors.Orange,
+        ["stem-borer"] = SKColors.Purple,
+        ["whorl-maggot"] = SKColors.Teal
+    };
+
+
     public MainPage()
     {
         InitializeComponent();
@@ -52,7 +63,12 @@ public partial class MainPage : ContentPage
         try
         {
             var photo = await MediaPicker.CapturePhotoAsync();
-            if (photo == null) return;
+            if (photo == null)
+            {
+                CapturedImage.Source = ImageSource.FromFile("");
+                PredictionList.Children.Clear();
+                return;
+            }
 
             var filePath = Path.Combine(FileSystem.CacheDirectory, photo.FileName);
             using (var stream = await photo.OpenReadAsync())
@@ -81,8 +97,8 @@ public partial class MainPage : ContentPage
 
             if (detections.Count == 0)
             {
-                PredictionList.ItemsSource = new List<string> { "No pests detected." };
-
+                PredictionList.Children.Clear();
+                await DisplayAlert("","No pests detected.","Ok");    
                 return;
             }
 
@@ -97,7 +113,56 @@ public partial class MainPage : ContentPage
 
             var uniquePests = detections.Select(d => d.Label).Distinct();
 
-            PredictionList.ItemsSource = uniquePests.ToList();
+            PredictionList.Children.Clear();
+            PredictionList.Children.Add(new Label
+            {
+                Text = "Detected Pests:",
+                FontSize = 16,
+                FontAttributes = FontAttributes.Bold,
+                TextColor = Colors.DarkGreen
+            });
+
+            foreach (var pest in uniquePests)
+            {
+                var color = _labelColors.TryGetValue(pest, out var skColor)
+                ? Color.FromRgba(skColor.Red, skColor.Green, skColor.Blue, skColor.Alpha)
+                : Colors.Black;
+
+
+                var frame = new Frame
+                {
+                    CornerRadius = 10,
+                    BackgroundColor = color,
+                    Padding = new Thickness(10, 5),
+                    Margin = new Thickness(5),
+                    HeightRequest = 50, // Increase height here
+                    VerticalOptions = LayoutOptions.Center,
+                    Content = new Label
+                    {
+                        Text = pest,
+                        FontSize = 14,
+                        TextColor = Colors.White,
+                        HorizontalTextAlignment = TextAlignment.Center,
+                        VerticalTextAlignment = TextAlignment.Center,
+                        FontAttributes = FontAttributes.Bold,
+                        VerticalOptions = LayoutOptions.Center,
+                        HorizontalOptions = LayoutOptions.Center
+                    }
+                };
+
+                // Add tap gesture to the frame instead of the label
+                var tap = new TapGestureRecognizer();
+                tap.Tapped += async (s, e) =>
+                {
+                    string description = GetPestDescription(pest);
+                    await Navigation.PushAsync(new PestDetailPage(pest, description));
+                };
+
+                frame.GestureRecognizers.Add(tap);
+                PredictionList.Children.Add(frame);
+
+
+            }
 
         }
         catch (Exception ex)
@@ -117,7 +182,12 @@ public partial class MainPage : ContentPage
                 PickerTitle = "Select an image"
             });
 
-            if (result == null) return;
+            if (result == null)
+            {
+                CapturedImage.Source = "";
+                PredictionList.Children.Clear();
+                return;
+            }
 
             var filePath = result.FullPath;
             CapturedImage.Source = ImageSource.FromFile(filePath);
@@ -142,7 +212,8 @@ public partial class MainPage : ContentPage
 
             if (detections.Count == 0)
             {
-                PredictionList.ItemsSource = new List<string> { "No pests detected." };
+                PredictionList.Children.Clear();
+                await DisplayAlert("","No pests detected.","OK");
                 return;
             }
 
@@ -155,7 +226,54 @@ public partial class MainPage : ContentPage
 
             var uniquePests = detections.Select(d => d.Label).Distinct();
 
-            PredictionList.ItemsSource = uniquePests.ToList();
+            PredictionList.Children.Clear();
+            PredictionList.Children.Add(new Label
+            {
+                Text = "Detected Pests:",
+                FontSize = 16,
+                FontAttributes = FontAttributes.Bold,
+                TextColor = Colors.DarkGreen
+            });
+
+            foreach (var pest in uniquePests)
+            {
+               var color = _labelColors.TryGetValue(pest, out var skColor)
+            ? Color.FromRgba(skColor.Red, skColor.Green, skColor.Blue, skColor.Alpha)
+            : Colors.Black;
+
+
+                var frame = new Frame
+                {
+                    CornerRadius = 10,
+                    BackgroundColor = color,
+                    Padding = new Thickness(5, 5),
+                    HeightRequest = 45, // Increase height here
+                    VerticalOptions = LayoutOptions.Center,
+                    Content = new Label
+                    {
+                        Text = pest,
+                        FontSize = 14,
+                        TextColor = Colors.White,
+                        HorizontalTextAlignment = TextAlignment.Center,
+                        VerticalTextAlignment = TextAlignment.Center,
+                        FontAttributes = FontAttributes.Bold,
+                        VerticalOptions = LayoutOptions.Center,
+                        HorizontalOptions = LayoutOptions.Center
+                    }
+                };
+
+                // Add tap gesture to the frame instead of the label
+                var tap = new TapGestureRecognizer();
+                tap.Tapped += async (s, e) =>
+                {
+                    string description = GetPestDescription(pest);
+                    await Navigation.PushAsync(new PestDetailPage(pest, description));
+                };
+
+                frame.GestureRecognizers.Add(tap);
+                PredictionList.Children.Add(frame);
+
+            }
 
         }
         catch (Exception ex)
@@ -237,18 +355,6 @@ public partial class MainPage : ContentPage
     private SKBitmap DrawBoundingBoxes(SKBitmap image, List<PredictionResult> boxes)
     {
         var canvas = new SKCanvas(image);
-        var paint = new SKPaint
-        {
-            Style = SKPaintStyle.Stroke,
-            Color = SKColors.Red,
-            StrokeWidth = 1
-        };
-        var textPaint = new SKPaint
-        {
-            Color = SKColors.Yellow,
-            TextSize = 10, // Smaller text
-            IsAntialias = true
-        };
 
         foreach (var box in boxes)
         {
@@ -258,6 +364,26 @@ public partial class MainPage : ContentPage
             float h = box.Height;
 
             var rect = new SKRect(x, y, x + w, y + h);
+
+            // Get color for this label
+            SKColor color = _labelColors.TryGetValue(box.Label, out var c) ? c : SKColors.White;
+
+            var paint = new SKPaint
+            {
+                Style = SKPaintStyle.Stroke,
+                Color = color,
+                StrokeWidth = 2
+            };
+
+            var textPaint = new SKPaint
+            {
+                Color = color,
+                TextSize = 14,
+                IsAntialias = true,
+                IsStroke = false,
+                Typeface = SKTypeface.Default
+            };
+
             canvas.DrawRect(rect, paint);
             canvas.DrawText($"{box.Label} ({box.Confidence:P1})", x, y - 5, textPaint);
         }
@@ -308,16 +434,18 @@ public partial class MainPage : ContentPage
         return interArea / union;
     }
 
-    private void OnPredictionSelected(object sender, SelectionChangedEventArgs e)
+    private string GetPestDescription(string pest)
     {
-        if (e.CurrentSelection.FirstOrDefault() is string selectedPest)
+        return pest switch
         {
-            // Navigate to the PestDetailPage
-            Navigation.PushAsync(new PestDetailPage(selectedPest));
-
-            // Deselect the item
-            ((CollectionView)sender).SelectedItem = null;
-        }
+            "brown-planthopper" => "Brown planthopper: Sucks sap and causes hopperburn.",
+            "green-leafhopper" => "Green leafhopper: Transmits tungro virus and feeds on leaves.",
+            "leaf-folder" => "Leaf folder: Folds and eats leaves, reduces photosynthesis.",
+            "rice-bug" => "Rice bug: Sucks grains, leads to poor grain quality.",
+            "stem-borer" => "Stem borer: Bores into stems, causes dead hearts.",
+            "whorl-maggot" => "Whorl maggot: Attacks whorls of young plants.",
+            _ => "No additional information available."
+        };
     }
 
 }

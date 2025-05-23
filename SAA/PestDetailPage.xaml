@@ -2,11 +2,20 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="SAA.PestDetailPage"
-             Title="PestDetailPage">
+             Title="PestInfoPage">
     <ScrollView>
-        <VerticalStackLayout Padding="20">
-            <Label x:Name="PestNameLabel" FontSize="24" FontAttributes="Bold" />
-            <Label x:Name="PestDescriptionLabel" FontSize="16" />
+        <VerticalStackLayout Padding="20" Spacing="20">
+
+            <Label x:Name="PestNameLabel"
+                   FontSize="24"
+                   FontAttributes="Bold"
+                   TextColor="DarkGreen" />
+
+            <Label x:Name="PestDescriptionLabel"
+                   FontSize="16"
+                   TextColor="Black"
+                   LineBreakMode="WordWrap" />
+
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
