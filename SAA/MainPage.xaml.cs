@@ -278,13 +278,13 @@ public partial class MainPage : ContentPage
             {
                 Style = SKPaintStyle.Stroke,
                 Color = color,
-                StrokeWidth = 2
+                StrokeWidth = 5
             };
 
             var textPaint = new SKPaint
             {
                 Color = color,
-                TextSize = 14,
+                TextSize = 20,
                 IsAntialias = true,
                 IsStroke = false,
                 Typeface = SKTypeface.Default
@@ -337,4 +337,10 @@ public partial class MainPage : ContentPage
         public float X, Y, Width, Height, Confidence;
         public required string Label;
     }
+
+    private async void OnBrowsePestClicked(object sender, EventArgs e)
+    {
+        await Navigation.PushAsync(new PestListPage());
+    }
+
 }

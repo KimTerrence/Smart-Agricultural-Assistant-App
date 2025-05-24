@@ -29,6 +29,7 @@
 
             <Button Text=" Browse Pest"
                     BackgroundColor="#2196F3"
+                    Clicked="OnBrowsePestClicked"
                     TextColor="White" />
 
             <VerticalStackLayout x:Name="PredictionList"
