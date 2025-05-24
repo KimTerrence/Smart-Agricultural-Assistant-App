@@ -10,7 +10,6 @@
 
             //MainPage = new NavigationPage(new MainPage());
 
-
         }
     }
 }
