@@ -3,8 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
+using MySql.Data.MySqlClient;
+using System.Threading.Tasks;
+using Microsoft.Maui.Networking;
 
 namespace SAA
 {
@@ -17,6 +19,15 @@ namespace SAA
             InitializeComponent();
             InitDatabase();
             CheckIfUserExists();
+            Connectivity.ConnectivityChanged += Connectivity_ConnectivityChanged;
+        }
+
+        private void Connectivity_ConnectivityChanged(object sender, ConnectivityChangedEventArgs e)
+        {
+            if (e.NetworkAccess == NetworkAccess.Internet)
+            {
+                Task.Run(async () => await TrySyncUnsyncedUsers());
+            }
         }
 
         public class User
@@ -28,6 +39,7 @@ namespace SAA
             public string Email { get; set; }
             public string Address { get; set; }
             public string FieldLocations { get; set; }
+            public bool IsSynced { get; set; }  // Flag for sync status
         }
 
         private void InitDatabase()
@@ -54,7 +66,6 @@ namespace SAA
                 bool userExists = _database.Table<User>().Any();
                 if (userExists)
                 {
-                    // User already registered? Redirect immediately to MainPage
                     Application.Current.MainPage = new NavigationPage(new MainPage());
                 }
             }
@@ -98,7 +109,6 @@ namespace SAA
 
             try
             {
-                // Prevent registering twice
                 if (_database.Table<User>().Any())
                 {
                     await DisplayAlert("Already Registered", "You are already registered. Redirecting...", "OK");
@@ -133,7 +143,8 @@ namespace SAA
                 LastName = lastName,
                 Email = email,
                 Address = address,
-                FieldLocations = fieldLocationCsv
+                FieldLocations = fieldLocationCsv,
+                IsSynced = false // Mark as unsynced on insert
             };
 
             try
@@ -151,8 +162,51 @@ namespace SAA
             FirstNameEntry.Text = LastNameEntry.Text = EmailEntry.Text = AddressEntry.Text = string.Empty;
             FieldLocationsContainer.Children.Clear();
 
-            // Redirect to MainPage
+            // Attempt to sync right after registration
+            await TrySyncUnsyncedUsers();
+
             Application.Current.MainPage = new NavigationPage(new MainPage());
+        }
+
+        public async Task TrySyncUnsyncedUsers()
+        {
+            try
+            {
+                var current = Connectivity.NetworkAccess;
+                if (current != NetworkAccess.Internet)
+                    return;
+
+                var unsyncedUsers = _database.Table<User>().Where(u => !u.IsSynced).ToList();
+
+                foreach (var user in unsyncedUsers)
+                {
+                    try
+                    {
+                        using var conn = new MySqlConnection("server=192.168.100.29;uid=root;pwd=;database=saa_db;");
+                        await conn.OpenAsync();
+
+                        var cmd = new MySqlCommand("INSERT INTO users (firstname, lastname, email, address, fieldlocations) VALUES (@firstName, @lastName, @email, @address, @fieldLocations)", conn);
+                        cmd.Parameters.AddWithValue("@firstName", user.FirstName);
+                        cmd.Parameters.AddWithValue("@lastName", user.LastName);
+                        cmd.Parameters.AddWithValue("@email", user.Email);
+                        cmd.Parameters.AddWithValue("@address", user.Address);
+                        cmd.Parameters.AddWithValue("@fieldLocations", user.FieldLocations);
+
+                        await cmd.ExecuteNonQueryAsync();
+
+                        user.IsSynced = true;
+                        _database.Update(user);
+                    }
+                    catch (Exception ex)
+                    {
+                        await DisplayAlert(",",$"Sync failed for user {user.Email}: {ex.Message}","ok");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert(",", $"error {ex.Message}", "ok");
+            }
         }
     }
 }
