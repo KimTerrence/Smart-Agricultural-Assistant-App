@@ -25,10 +25,14 @@ public partial class MainPage : ContentPage
         ["whorl-maggot"] = SKColors.Teal
     };
 
+    private bool _locationReady = false;
+
+
     public MainPage()
     {
         InitializeComponent();
         LoadModelFromAssets();
+        _ = EnsureLocationAsync(); // Trigger location check without blocking UI
     }
 
     private void LoadModelFromAssets()
@@ -57,13 +61,25 @@ public partial class MainPage : ContentPage
 
     private async void OnCapturePhotoClicked(object sender, EventArgs e)
     {
+        ShowLoading();
+        var loadingStart = DateTime.UtcNow;
+
         try
         {
+            var location = await GetLocationAsync();
+            if (location == null)
+            {
+                await EnsureMinimumLoadingTime(loadingStart);
+                HideLoading();
+                return;
+            }
+
             var photo = await MediaPicker.CapturePhotoAsync();
             if (photo == null)
             {
-                CapturedImage.Source = ImageSource.FromFile("");
-                PredictionList.Children.Clear();
+                CapturedImage.Source = null;
+                await EnsureMinimumLoadingTime(loadingStart);
+                HideLoading();
                 return;
             }
 
@@ -73,13 +89,46 @@ public partial class MainPage : ContentPage
                 await stream.CopyToAsync(newStream);
 
             await ProcessImage(filePath);
+
+            // ✅ Show location alert after capture and processing
+            await DisplayAlert("📍 Location Captured", $"Latitude: {location.Latitude}\nLongitude: {location.Longitude}", "OK");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Error: {ex.Message}");
             await DisplayAlert("Error", ex.Message, "OK");
         }
+        finally
+        {
+            await EnsureMinimumLoadingTime(loadingStart);
+            HideLoading();
+        }
     }
+
+
+    private void ShowLoading()
+    {
+        LoadingOverlay.IsVisible = true;
+        LoadingIndicator.IsRunning = true;
+    }
+
+    private void HideLoading()
+    {
+        LoadingIndicator.IsRunning = false;
+        LoadingOverlay.IsVisible = false;
+    }
+
+    private async Task EnsureMinimumLoadingTime(DateTime startTime)
+    {
+        var elapsed = DateTime.UtcNow - startTime;
+        var remaining = TimeSpan.FromMilliseconds(500) - elapsed;
+
+        if (remaining > TimeSpan.Zero)
+        {
+            await Task.Delay(remaining);
+        }
+    }
+
+
 
     private async void OnBrowseImageClicked(object sender, EventArgs e)
     {
@@ -341,6 +390,89 @@ public partial class MainPage : ContentPage
     private async void OnBrowsePestClicked(object sender, EventArgs e)
     {
         await Navigation.PushAsync(new PestListPage());
+    }
+
+    private async Task<bool> EnsureLocationAsync()
+    {
+        try
+        {
+            var status = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
+            if (status != PermissionStatus.Granted)
+                status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+
+            if (status != PermissionStatus.Granted)
+            {
+                bool openSettings = await DisplayAlert(
+                    "Location Required",
+                    "This app requires location access to continue. Please enable location services.",
+                    "Open Location",
+                    "Cancel");
+
+                if (openSettings)
+                {
+#if ANDROID
+                var intent = new Android.Content.Intent(Android.Provider.Settings.ActionLocationSourceSettings);
+                intent.SetFlags(Android.Content.ActivityFlags.NewTask);
+                Android.App.Application.Context.StartActivity(intent);
+#endif
+                }
+                else
+                {
+                    // Close app
+#if ANDROID
+                Android.OS.Process.KillProcess(Android.OS.Process.MyPid());
+#endif
+                }
+
+                return false;
+            }
+
+            var location = await Geolocation.GetLastKnownLocationAsync();
+            if (location == null)
+                location = await Geolocation.GetLocationAsync(new GeolocationRequest(GeolocationAccuracy.Medium));
+
+            if (location == null)
+            {
+                await DisplayAlert("Location Required", "Unable to get current location. Please enable location services.", "OK");
+                return false;
+            }
+
+            Console.WriteLine($"Location: Lat {location.Latitude}, Lon {location.Longitude}");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Location Error", ex.Message, "OK");
+            return false;
+        }
+    }
+
+
+    private async Task<Location?> GetLocationAsync()
+    {
+        try
+        {
+            var status = await Permissions.CheckStatusAsync<Permissions.LocationWhenInUse>();
+            if (status != PermissionStatus.Granted)
+                status = await Permissions.RequestAsync<Permissions.LocationWhenInUse>();
+
+            if (status != PermissionStatus.Granted)
+            {
+                await DisplayAlert("Location Required", "This app requires location access to continue.", "OK");
+                return null;
+            }
+
+            var location = await Geolocation.GetLastKnownLocationAsync();
+            if (location == null)
+                location = await Geolocation.GetLocationAsync(new GeolocationRequest(GeolocationAccuracy.Medium));
+
+            return location;
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Location Error", ex.Message, "OK");
+            return null;
+        }
     }
 
 }
