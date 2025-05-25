@@ -6,21 +6,50 @@
              NavigationPage.HasBackButton="False"
              BackgroundColor="#f3eff5">
     <VerticalStackLayout Padding="0" Spacing="10" VerticalOptions="Center">
-    
+        <HorizontalStackLayout HorizontalOptions="Center" >
+            <Image 
+                Source="logo.png"
+                HeightRequest="100"/>
+            <VerticalStackLayout VerticalOptions="Center">
+                <Label FontSize="20" TextColor="DarkGreen" FontAttributes="Bold" Text="SMART" />
+                <Label FontSize="20" TextColor="DarkGreen" FontAttributes="Bold" Text="AGRICULTURAL" />
+                <Label FontSize="20" TextColor="DarkGreen" FontAttributes="Bold" Text="ASSISTANT" />
+            </VerticalStackLayout>
 
-        <Label Text="Smart Agricultural Assistant" 
-               FontSize="25" 
-               HorizontalOptions="Center"
-               TextColor="#3f7d20"
-               FontAttributes="Bold"
-               HorizontalTextAlignment="Center"/>
+        </HorizontalStackLayout>
 
-        <Image 
-                Source="logo.png"/>
+        <!-- Carousel Slider -->
+        <CarouselView x:Name="ImageCarousel"
+                      Margin="20"
+                      IndicatorView="ImageIndicators">
+            <CarouselView.ItemsSource>
+                <x:Array Type="{x:Type x:String}">
+                    <x:String>detect.png</x:String>
+                    <x:String>identify.png</x:String>
+                    <x:String>manage.png</x:String>
+                </x:Array>
+            </CarouselView.ItemsSource>
+            <CarouselView.ItemTemplate>
+                <DataTemplate>
+                    <Image Source="{Binding}" HeightRequest="350"/>
+                </DataTemplate>
+            </CarouselView.ItemTemplate>
+        </CarouselView>
 
-        <Button Text="Get started!"
-              FontSize="18"
-              Clicked="Start"
-              Margin="30"/>
+        <!-- Indicators -->
+        <IndicatorView x:Name="ImageIndicators"
+                       HorizontalOptions="Center"
+                       IndicatorColor="Gray"
+                       SelectedIndicatorColor="DarkGreen"
+                       Margin="0,0,0,10"/>
+
+        <Button Text="Get Started"
+                FontSize="18"
+                BackgroundColor="#3f7d20"
+                TextColor="White"
+                CornerRadius="25"
+                HeightRequest="50"
+                Margin="20"
+                Clicked="Start"/>
     </VerticalStackLayout>
 </ContentPage>
