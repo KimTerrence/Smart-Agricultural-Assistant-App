@@ -1,6 +1,8 @@
 ﻿using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
+using MySql.Data.MySqlClient;
 using SkiaSharp;
+using SQLite;
 using System.Diagnostics;
 
 namespace SAA;
@@ -31,8 +33,18 @@ public partial class MainPage : ContentPage
     public MainPage()
     {
         InitializeComponent();
+        InitDetectionDatabase();
         LoadModelFromAssets();
-        _ = EnsureLocationAsync(); // Trigger location check without blocking UI
+        _ = EnsureLocationAsync();
+        Connectivity.ConnectivityChanged += Connectivity_ConnectivityChanged;
+    }
+
+    private void Connectivity_ConnectivityChanged(object sender, ConnectivityChangedEventArgs e)
+    {
+        if (e.NetworkAccess == NetworkAccess.Internet)
+        {
+            Task.Run(async () => await TrySyncUnsyncedDetections());
+        }
     }
 
     private void LoadModelFromAssets()
@@ -91,7 +103,7 @@ public partial class MainPage : ContentPage
             await ProcessImage(filePath);
 
             // ✅ Show location alert after capture and processing
-            await DisplayAlert("📍 Location Captured", $"Latitude: {location.Latitude}\nLongitude: {location.Longitude}", "OK");
+           // await DisplayAlert("📍 Location Captured", $"Latitude: {location.Latitude}\nLongitude: {location.Longitude}", "OK");
         }
         catch (Exception ex)
         {
@@ -184,6 +196,24 @@ public partial class MainPage : ContentPage
             return;
         }
 
+        // Save each detection to the local database
+        var location = await GetLocationAsync();
+        foreach (var detection in detections)
+        {
+            var log = new DetectionLog
+            {
+                PestName = detection.Label,
+                Confidence = detection.Confidence,
+                DetectionTime = DateTime.Now,
+                Latitude = location?.Latitude ?? 0,
+                Longitude = location?.Longitude ?? 0,
+                ImagePath = filePath,
+                IsSynced = false
+            };
+
+            _detectionDb.Insert(log);
+        }
+
         var imageWithBoxes = DrawBoundingBoxes(originalImage, detections);
         using var image = SKImage.FromBitmap(imageWithBoxes);
         using var data = image.Encode(SKEncodedImageFormat.Jpeg, 90);
@@ -238,6 +268,7 @@ public partial class MainPage : ContentPage
             frame.GestureRecognizers.Add(tap);
             PredictionList.Children.Add(frame);
         }
+        await TrySyncUnsyncedDetections();
     }
 
     private DenseTensor<float> PreprocessImage(string imagePath)
@@ -474,5 +505,78 @@ public partial class MainPage : ContentPage
             return null;
         }
     }
+    public class DetectionLog
+    {
+        [PrimaryKey, AutoIncrement]
+        public int Id { get; set; }
+        public int UserId { get; set; }
+        public string UserName { get; set; }
+        public string PestName { get; set; }
+        public double? Confidence { get; set; }  
+        public DateTime DetectionTime { get; set; }
+        public double Latitude { get; set; }
+        public double Longitude { get; set; }
+        public string ImagePath { get; set; }
+        public bool IsSynced { get; set; }
+    }
 
+    private SQLiteConnection _detectionDb;
+
+    private void InitDetectionDatabase()
+    {
+        try
+        {
+            string dbPath = Path.Combine(FileSystem.AppDataDirectory, "detections.db");
+            _detectionDb = new SQLiteConnection(dbPath);
+            _detectionDb.CreateTable<DetectionLog>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Detection DB Init Error: {ex.Message}");
+        }
+    }
+    public async Task TrySyncUnsyncedDetections()
+    {
+        try
+        {
+            var current = Connectivity.NetworkAccess;
+            if (current != NetworkAccess.Internet)
+                return;
+
+            var unsyncedDetections = _detectionDb.Table<DetectionLog>().Where(d => !d.IsSynced).ToList();
+
+            foreach (var detection in unsyncedDetections)
+            {
+                try
+                {
+                    using var conn = new MySqlConnection("server=192.168.100.29;uid=root;pwd=;database=saa_db;");
+                    await conn.OpenAsync();
+
+                    var cmd = new MySqlCommand(
+                        "INSERT INTO detection_logs (pest_name, confidence, detection_time, latitude, longitude, image_path) " +
+                        "VALUES (@pestName, @confidence, @detectionTime, @latitude, @longitude, @imagePath)", conn);
+
+                    cmd.Parameters.AddWithValue("@pestName", detection.PestName);
+                    cmd.Parameters.AddWithValue("@confidence", detection.Confidence);
+                    cmd.Parameters.AddWithValue("@detectionTime", detection.DetectionTime);
+                    cmd.Parameters.AddWithValue("@latitude", detection.Latitude);
+                    cmd.Parameters.AddWithValue("@longitude", detection.Longitude);
+                    cmd.Parameters.AddWithValue("@imagePath", detection.ImagePath);
+
+                    await cmd.ExecuteNonQueryAsync();
+
+                    detection.IsSynced = true;
+                    _detectionDb.Update(detection);
+                }
+                catch (Exception ex)
+                {
+                    await DisplayAlert("Sync Error", $"Failed to sync detection {detection.Id}: {ex.Message}", "OK");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlert("Sync Error", $"General sync error: {ex.Message}", "OK");
+        }
+    }
 }

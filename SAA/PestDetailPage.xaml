@@ -9,11 +9,9 @@
         <VerticalStackLayout Spacing="15">
 
             <!-- Pest Image -->
-            <Frame HasShadow="True" CornerRadius="15" Padding="0">
+            <Frame HasShadow="True" CornerRadius="15"  HeightRequest="280" WidthRequest="280" Padding="0">
                 <Image x:Name="PestImage"
-                       Aspect="AspectFill"
-                       HeightRequest="200"
-                       WidthRequest="300"
+                       HeightRequest="230"
                        HorizontalOptions="Center"
                        VerticalOptions="Center"
                        />

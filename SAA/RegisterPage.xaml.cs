@@ -107,6 +107,48 @@ namespace SAA
                 return;
             }
 
+            // Validate required fields
+            string firstName = FirstNameEntry.Text?.Trim();
+            string lastName = LastNameEntry.Text?.Trim();
+            string email = EmailEntry.Text?.Trim();
+            string address = AddressEntry.Text?.Trim();
+
+            if (string.IsNullOrWhiteSpace(firstName))
+            {
+                await DisplayAlert("Error", "First name is required", "OK");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(lastName))
+            {
+                await DisplayAlert("Error", "Last name is required", "OK");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(email))
+            {
+                await DisplayAlert("Error", "Email is required", "OK");
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(address))
+            {
+                await DisplayAlert("Error", "Address is required", "OK");
+                return;
+            }
+
+            // Field locations are optional
+            var fieldLocations = new List<string>();
+            foreach (var view in FieldLocationsContainer.Children)
+            {
+                if (view is Frame frame && frame.Content is Entry entry && !string.IsNullOrWhiteSpace(entry.Text))
+                {
+                    fieldLocations.Add(entry.Text.Trim());
+                }
+            }
+
+            string fieldLocationCsv = fieldLocations.Any() ? string.Join(",", fieldLocations) : string.Empty;
+
             try
             {
                 if (_database.Table<User>().Any())
@@ -121,22 +163,6 @@ namespace SAA
                 Console.WriteLine($"DB Query Error: {ex.Message}");
             }
 
-            string firstName = FirstNameEntry.Text?.Trim();
-            string lastName = LastNameEntry.Text?.Trim();
-            string email = EmailEntry.Text?.Trim();
-            string address = AddressEntry.Text?.Trim();
-
-            var fieldLocations = new List<string>();
-            foreach (var view in FieldLocationsContainer.Children)
-            {
-                if (view is Frame frame && frame.Content is Entry entry && !string.IsNullOrWhiteSpace(entry.Text))
-                {
-                    fieldLocations.Add(entry.Text.Trim());
-                }
-            }
-
-            string fieldLocationCsv = string.Join(",", fieldLocations);
-
             var user = new User
             {
                 FirstName = firstName,
@@ -144,28 +170,29 @@ namespace SAA
                 Email = email,
                 Address = address,
                 FieldLocations = fieldLocationCsv,
-                IsSynced = false // Mark as unsynced on insert
+                IsSynced = false
             };
 
             try
             {
                 _database.Insert(user);
-                await DisplayAlert("Success", "User registered successfully!", "OK");
+                await DisplayAlert("Success", "Registered successfully!", "OK");
+
+                // Clear fields
+                FirstNameEntry.Text = string.Empty;
+                LastNameEntry.Text = string.Empty;
+                EmailEntry.Text = string.Empty;
+                AddressEntry.Text = string.Empty;
+                FieldLocationsContainer.Children.Clear();
+
+                // Attempt to sync
+                await TrySyncUnsyncedUsers();
+                Application.Current.MainPage = new NavigationPage(new MainPage());
             }
             catch (Exception ex)
             {
                 await DisplayAlert("Error", "Failed to save data: " + ex.Message, "OK");
-                return;
             }
-
-            // Clear fields
-            FirstNameEntry.Text = LastNameEntry.Text = EmailEntry.Text = AddressEntry.Text = string.Empty;
-            FieldLocationsContainer.Children.Clear();
-
-            // Attempt to sync right after registration
-            await TrySyncUnsyncedUsers();
-
-            Application.Current.MainPage = new NavigationPage(new MainPage());
         }
 
         public async Task TrySyncUnsyncedUsers()
