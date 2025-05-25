@@ -5,12 +5,6 @@
              Title="Pest List">
     <ScrollView>
         <VerticalStackLayout Padding="16" Spacing="16">
-            <Label Text="Rice Pests"
-                   FontSize="26"
-                   FontAttributes="Bold"
-                   TextColor="#2E3A59"
-                   HorizontalOptions="Center" />
-
             <Grid x:Name="PestGrid" ColumnSpacing="12" RowSpacing="12">
                 <!-- Pest cards will be added in code-behind -->
             </Grid>
